@@ -21,7 +21,7 @@ public class FilmValidatorTest {
         film.setName("film");
         film.setDescription("ok");
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
-        film.setDuration(Duration.ofMinutes(1));
+        film.setDuration(1);
 
         assertDoesNotThrow(() -> validator.validate(film));
     }
@@ -33,7 +33,7 @@ public class FilmValidatorTest {
         film.setName("film");
         film.setDescription("a".repeat(201));
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(Duration.ofMinutes(1));
+        film.setDuration(1);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> validator.validate(film));
         assertEquals("Максимальная длина описания — 200 символов", ex.getMessage());
@@ -45,7 +45,7 @@ public class FilmValidatorTest {
         film.setName("Film");
         film.setDescription("ok");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(Duration.ofMinutes(-1));
+        film.setDuration(-1);
 
         ValidationException ex = assertThrows(ValidationException.class, () -> validator.validate(film));
         assertEquals("Продолжительность фильма должна быть положительной.", ex.getMessage());
