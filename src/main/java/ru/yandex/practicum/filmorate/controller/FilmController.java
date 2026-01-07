@@ -75,7 +75,9 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getFilms() {
-        return filmsByNames.values();
+        return filmsByNames.values().stream()
+                .sorted((a, b) -> Integer.compare(a.getId(), b.getId()))
+                .toList();
     }
 
 }

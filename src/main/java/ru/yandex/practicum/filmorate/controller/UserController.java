@@ -75,7 +75,9 @@ public class UserController {
 
     @GetMapping
     public Collection<User> getAllUsers() {
-        return usersById.values();
+        return usersById.values().stream()
+                .sorted((a, b) -> Integer.compare(a.getId(), b.getId()))
+                .toList();
     }
 
 }
