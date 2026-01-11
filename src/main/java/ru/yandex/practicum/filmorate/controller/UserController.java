@@ -23,7 +23,6 @@ import java.util.Map;
 public class UserController {
 
     private Map<Integer, User> usersById = new HashMap<>();
-    //private Map<String, User> usersByEmail = new HashMap<>();
 
     private final UserValidator userValidator = new UserValidator();
 
@@ -34,15 +33,9 @@ public class UserController {
 
         userValidator.validate(newUser);
 
-//        if (usersByEmail.containsKey(newUser.getEmail())) {
-//            log.error("ошибка хранения: email {} уже используется", newUser.getEmail());
-//            throw new ValidationException("email уже используется");
-//        }
-
         newUser.setId(User.getNextId());
 
         usersById.put(newUser.getId(), newUser);
-        // usersByEmail.put(newUser.getEmail(), newUser);
         return newUser;
     }
 
@@ -61,15 +54,7 @@ public class UserController {
             throw new NotFoundException("Пользователь с id=" + userForUpdate.getId() + " не найден");
         }
 
-//        if (!oldUser.getEmail().equals(userForUpdate.getEmail())
-//                && usersByEmail.containsKey(userForUpdate.getEmail())) {
-//            throw new ValidationException("email уже используется");
-//        }
-
-        //  usersByEmail.remove(oldUser.getEmail());
-
         usersById.put(userForUpdate.getId(), userForUpdate);
-        //  usersByEmail.put(userForUpdate.getEmail(), userForUpdate);
 
         return userForUpdate;
     }

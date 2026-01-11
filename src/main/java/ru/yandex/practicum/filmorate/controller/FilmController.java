@@ -23,7 +23,6 @@ import java.util.Map;
 public class FilmController {
 
     private Map<Integer, Film> filmsById = new HashMap<>();
-    // private Map<String, Film> filmsByNames = new HashMap<>();
 
     private final FilmValidator filmValidator = new FilmValidator();
 
@@ -35,13 +34,8 @@ public class FilmController {
 
         filmValidator.validate(newFilm);
 
-//        if (filmsByNames.containsKey(newFilm.getName())) {
-//            throw new ValidationException("Данное название уже используется. Выберите другое");
-//        }
-
         newFilm.setId(Film.getNextId());
 
-        //filmsByNames.put(newFilm.getName(), newFilm);
         filmsById.put(newFilm.getId(), newFilm);
         return newFilm;
     }
@@ -61,15 +55,7 @@ public class FilmController {
             throw new NotFoundException("Фильм с id=" + filmForUpdate.getId() + " не найден");
         }
 
-//        if (!oldFilm.getName().equals(filmForUpdate.getName())
-//                && filmsByNames.containsKey(filmForUpdate.getName())) {
-//            throw new ValidationException("Данное название уже используется. Выберите другое");
-//        }
-
-        //filmsByNames.remove(oldFilm.getName());
-
         filmsById.put(filmForUpdate.getId(), filmForUpdate);
-        //filmsByNames.put(filmForUpdate.getName(), filmForUpdate);
 
         return filmForUpdate;
     }
