@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,31 +23,31 @@ import java.util.Map;
 public class FilmController {
 
     private Map<Integer, Film> filmsById = new HashMap<>();
-    private Map<String, Film> filmsByNames = new HashMap<>();
+    // private Map<String, Film> filmsByNames = new HashMap<>();
 
     private final FilmValidator filmValidator = new FilmValidator();
 
 
     @PostMapping
-    public Film createNewFilm(@RequestBody Film newFilm) {
+    public Film createNewFilm(@Valid @RequestBody Film newFilm) {
 
         log.info("Получен HTTP-запрос на создание фильма: {}", newFilm);
 
         filmValidator.validate(newFilm);
 
-        if (filmsByNames.containsKey(newFilm.getName())) {
-            throw new ValidationException("Данное название уже используется. Выберите другое");
-        }
+//        if (filmsByNames.containsKey(newFilm.getName())) {
+//            throw new ValidationException("Данное название уже используется. Выберите другое");
+//        }
 
         newFilm.setId(Film.getNextId());
 
-        filmsByNames.put(newFilm.getName(), newFilm);
+        //filmsByNames.put(newFilm.getName(), newFilm);
         filmsById.put(newFilm.getId(), newFilm);
         return newFilm;
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film filmForUpdate) {
+    public Film updateFilm(@Valid @RequestBody Film filmForUpdate) {
         log.info("Получен HTTP-запрос на обновление фильма: {}", filmForUpdate);
 
         filmValidator.validate(filmForUpdate);
@@ -60,22 +61,22 @@ public class FilmController {
             throw new NotFoundException("Фильм с id=" + filmForUpdate.getId() + " не найден");
         }
 
-        if (!oldFilm.getName().equals(filmForUpdate.getName())
-                && filmsByNames.containsKey(filmForUpdate.getName())) {
-            throw new ValidationException("Данное название уже используется. Выберите другое");
-        }
+//        if (!oldFilm.getName().equals(filmForUpdate.getName())
+//                && filmsByNames.containsKey(filmForUpdate.getName())) {
+//            throw new ValidationException("Данное название уже используется. Выберите другое");
+//        }
 
-        filmsByNames.remove(oldFilm.getName());
+        //filmsByNames.remove(oldFilm.getName());
 
         filmsById.put(filmForUpdate.getId(), filmForUpdate);
-        filmsByNames.put(filmForUpdate.getName(), filmForUpdate);
+        //filmsByNames.put(filmForUpdate.getName(), filmForUpdate);
 
         return filmForUpdate;
     }
 
     @GetMapping
     public Collection<Film> getFilms() {
-        return filmsByNames.values().stream()
+        return filmsById.values().stream()
                 .sorted((a, b) -> Integer.compare(a.getId(), b.getId()))
                 .toList();
     }

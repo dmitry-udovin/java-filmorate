@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,31 +23,31 @@ import java.util.Map;
 public class UserController {
 
     private Map<Integer, User> usersById = new HashMap<>();
-    private Map<String, User> usersByEmail = new HashMap<>();
+    //private Map<String, User> usersByEmail = new HashMap<>();
 
     private final UserValidator userValidator = new UserValidator();
 
     @PostMapping
-    public User createUser(@RequestBody User newUser) {
+    public User createUser(@Valid @RequestBody User newUser) {
 
         log.info("Получен HTTP-запрос на создание пользователя: {}", newUser);
 
         userValidator.validate(newUser);
 
-        if (usersByEmail.containsKey(newUser.getEmail())) {
-            log.error("ошибка хранения: email {} уже используется", newUser.getEmail());
-            throw new ValidationException("email уже используется");
-        }
+//        if (usersByEmail.containsKey(newUser.getEmail())) {
+//            log.error("ошибка хранения: email {} уже используется", newUser.getEmail());
+//            throw new ValidationException("email уже используется");
+//        }
 
         newUser.setId(User.getNextId());
 
         usersById.put(newUser.getId(), newUser);
-        usersByEmail.put(newUser.getEmail(), newUser);
+        // usersByEmail.put(newUser.getEmail(), newUser);
         return newUser;
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User userForUpdate) {
+    public User updateUser(@Valid @RequestBody User userForUpdate) {
         log.info("Получен HTTP-запрос на обновление пользовательских данных: {}", userForUpdate);
 
         userValidator.validate(userForUpdate);
@@ -60,15 +61,15 @@ public class UserController {
             throw new NotFoundException("Пользователь с id=" + userForUpdate.getId() + " не найден");
         }
 
-        if (!oldUser.getEmail().equals(userForUpdate.getEmail())
-                && usersByEmail.containsKey(userForUpdate.getEmail())) {
-            throw new ValidationException("email уже используется");
-        }
+//        if (!oldUser.getEmail().equals(userForUpdate.getEmail())
+//                && usersByEmail.containsKey(userForUpdate.getEmail())) {
+//            throw new ValidationException("email уже используется");
+//        }
 
-        usersByEmail.remove(oldUser.getEmail());
+        //  usersByEmail.remove(oldUser.getEmail());
 
         usersById.put(userForUpdate.getId(), userForUpdate);
-        usersByEmail.put(userForUpdate.getEmail(), userForUpdate);
+        //  usersByEmail.put(userForUpdate.getEmail(), userForUpdate);
 
         return userForUpdate;
     }

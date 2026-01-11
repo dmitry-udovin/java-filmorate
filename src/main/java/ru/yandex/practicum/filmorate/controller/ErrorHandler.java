@@ -28,4 +28,11 @@ public class ErrorHandler {
         return Map.of("error", e.getMessage());
     }
 
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleThrowable(Throwable t) {
+        log.error("Непредвиденная ошибка сервера", t);
+        return Map.of("error", "Внутренняя ошибка сервера");
+    }
+
 }
