@@ -8,13 +8,16 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
 
     private static int counter = 1;
+    private Set<Long> friends = new HashSet<>();
 
-    private int id;
+    private long id;
     @NotBlank
     @Email
     private String email;
@@ -30,7 +33,7 @@ public class User {
         return birthday != null && !birthday.isAfter(LocalDate.now());
     }
 
-    public static int getNextId() {
+    public static long getNextId() {
         return counter++;
     }
 }
