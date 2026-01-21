@@ -33,7 +33,6 @@ public class FilmController {
     private final FilmValidator filmValidator;
     private final FilmService filmService;
     private final UserService userService;
-    // private final InMemoryFilmStorage filmStorage;
 
     @PostMapping
     public Film createNewFilm(@Valid @RequestBody Film newFilm) {
@@ -43,8 +42,6 @@ public class FilmController {
         filmValidator.validate(newFilm);
 
         newFilm.setId(Film.getNextId());
-
-        //filmStorage.getFilmsById().put(newFilm.getId(), newFilm);
 
         filmService.addNewFilmToStorage(newFilm.getId(), newFilm);
 
@@ -61,15 +58,11 @@ public class FilmController {
             throw new ValidationException("id должен быть указан");
         }
 
-        // Film oldFilm = filmStorage.getFilmsById().get(filmForUpdate.getId());
-
         Film oldFilm = filmService.getFilmFromStorage(filmForUpdate.getId());
 
         if (oldFilm == null) {
             throw new NotFoundException("Фильм с id=" + filmForUpdate.getId() + " не найден");
         }
-
-        //filmStorage.getFilmsById().put(filmForUpdate.getId(), filmForUpdate);
 
         filmService.addNewFilmToStorage(filmForUpdate.getId(), filmForUpdate);
 
@@ -129,9 +122,6 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getFilms() {
-//        return filmStorage.getFilmsById().values().stream()
-//                .sorted((a, b) -> Integer.compare(a.getId(), b.getId()))
-//                .toList();
 
         log.info("Получен HTTP-запрос на получение всех фильмов");
 
@@ -142,13 +132,8 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilmById(@PathVariable int id) {
-        // Film film = filmStorage.getFilmsById().get(id);
 
         log.info("Получен HTTP-запрос на получение фильма по его номеру: #{}", id);
-
-//        if (film == null) {
-//            throw new NotFoundException("Фильм с номером " + id + " не найден.");
-//        }
 
         return filmService.getFilmFromStorage(id);
     }

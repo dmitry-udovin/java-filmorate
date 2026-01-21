@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -18,7 +17,7 @@ public class Film {
             LocalDate.of(1895, 12, 28);
 
     private static int counter = 1;
-    @JsonIgnore
+   // @JsonIgnore
     private Set<Long> usersWhoLiked = new HashSet<>(); // id
 
     private int id;

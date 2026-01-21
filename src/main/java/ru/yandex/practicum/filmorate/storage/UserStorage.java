@@ -8,6 +8,4 @@ public interface UserStorage {
 
     Map<Long, User> getUsersById();
 
-   // Collection<User> getAllCommonFriendsWithUser(Long id1, Long id2);
-
 }

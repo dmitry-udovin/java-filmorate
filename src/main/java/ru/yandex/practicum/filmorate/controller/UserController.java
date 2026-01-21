@@ -32,13 +32,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/users")
 public class UserController {
 
-//    private Map<Long, User> usersById = new HashMap<>();
-//
-//    private final UserValidator userValidator = new UserValidator();
-
     private final UserValidator userValidator;
     private final UserService userService;
-    //  private final InMemoryUserStorage userStorage;
 
     @PostMapping
     public User createUser(@Valid @RequestBody User newUser) {
@@ -48,8 +43,6 @@ public class UserController {
         userValidator.validate(newUser);
 
         newUser.setId(User.getNextId());
-
-        // userStorage.getUsersById().put(newUser.getId(), newUser);
 
         userService.addNewUserToStorage(newUser.getId(), newUser);
 
@@ -66,16 +59,6 @@ public class UserController {
             throw new ValidationException("id должен быть указан");
         }
 
-        // User oldUser = userStorage.getUsersById().get(userForUpdate.getId());
-
-        User oldUser = userService.getUserFromStorage(userForUpdate.getId());
-
-//        if (oldUser == null) {
-//            throw new NotFoundException("Пользователь с id=" + userForUpdate.getId() + " не найден");
-//        }
-
-        //  userStorage.getUsersById().put(userForUpdate.getId(), userForUpdate);
-
         userService.addNewUserToStorage(userForUpdate.getId(), userForUpdate);
 
         return userForUpdate;
@@ -86,38 +69,11 @@ public class UserController {
 
         log.info("Получен HTTP-запрос на обновление друзей пользователя: #{}, id друга для добавления: #{}", id, friendId);
 
-//        if (id == null) {
-//            throw new NotFoundException("Не указан id пользователя.");
-//        }
-//
-//        if (id <= 0) {
-//            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
-//        }
-//
-//        if (friendId == null) {
-//            throw new NotFoundException("Для добавления нового друга должно быть указано его id.");
-//        }
-//
-//        if (friendId <= 0) {
-//            throw new IncorrectCountException("id друга должен начинаться от 1 и выше.");
-//        }
-
         userService.validateUserByID(id);
         userService.validateUserByID(friendId);
 
-        //   User user = userStorage.getUsersById().get(id);
-        //   User friendUser = userStorage.getUsersById().get(friendId);
-
         User user = userService.getUserFromStorage(id);
         User friendUser = userService.getUserFromStorage(friendId);
-
-//        if (user == null) {
-//            throw new NotFoundException("Попытка добавить друга несуществующему пользователю, id = " + id);
-//        }
-//
-//        if (friendUser == null) {
-//            throw new NotFoundException("Друг с указанным friendId " + friendId + " не найден.");
-//        }
 
         user.getFriends().add(friendUser.getId());
         friendUser.getFriends().add(user.getId());
@@ -140,19 +96,8 @@ public class UserController {
             throw new IncorrectCountException("id друга для удаления должен начинаться от 1 и выше.");
         }
 
-        //User user = userStorage.getUsersById().get(id);
-        //User friendUser = userStorage.getUsersById().get(friendId);
-
         User user = userService.getUserFromStorage(id);
         User friendUser = userService.getUserFromStorage(friendId);
-
-//        if (user == null) {
-//            throw new NotFoundException("Попытка удалить друга у несуществующего пользователя, id = " + id);
-//        }
-//
-//        if (friendUser == null) {
-//            throw new NotFoundException("Пользователь для удаления из друзей не найден: id = " + friendId);
-//        }
 
         if (!user.getFriends().contains(friendUser.getId())) {
             throw new UserRelationshipsException("Ошибка исполнения: пользователи не являются друзьями!");
@@ -171,13 +116,7 @@ public class UserController {
 
         userService.validateUserByID(id);
 
-        // User userForSearch = userStorage.getUsersById().get(id);
-
         User userForSearch = userService.getUserById(id);
-
-//        if (userForSearch == null) {
-//            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + id);
-//        }
 
         List<User> friendsList = userForSearch.getFriends().stream()
                 .map(userService::getUserById)
@@ -197,44 +136,20 @@ public class UserController {
 
         log.info("Получен HTTP-запрос на получение общих друзей с пользователем: #{}, от (user #{})", otherId, id);
 
-//        if (id == null) {
-//            throw new NotFoundException("Не указан id 1-го пользователя.");
-//        }
-//
-//        if (otherId == null) {
-//            throw new NotFoundException("Не указан id 2-го пользователя.");
-//        }
-//
-//        if (id <= 0 || otherId <= 0) {
-//            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
-//        }
-
         userService.validateUserByID(id);
         userService.validateUserByID(otherId);
 
         User firstUser = userService.getUserFromStorage(id);
 
-//        if (firstUser == null) {
-//            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + id);
-//        }
-
-        // User secondUser = userStorage.getUsersById().get(otherId);
-
         User secondUser = userService.getUserFromStorage(otherId);
-
-//        if (secondUser == null) {
-//            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + otherId);
-//        }
 
         List<Long> commonFriendIds = firstUser.getFriends().stream()
                 .filter(friendId -> secondUser.getFriends().contains(friendId))
                 .collect(Collectors.toList());
 
-
         return commonFriendIds.stream()
                 .map(userService::getUserById)
                 .collect(Collectors.toList());
-
     }
 
 
@@ -242,10 +157,6 @@ public class UserController {
     public Collection<User> getAllUsers() {
 
         log.info("Получен HTTP-запрос на получение списка всех пользователей");
-
-//        return userStorage.getUsersById().values().stream()
-//                .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
-//                .toList();
 
         return userService.getAllUsersFromStorage().stream()
                 .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
