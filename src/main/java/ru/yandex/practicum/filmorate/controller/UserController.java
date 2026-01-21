@@ -17,15 +17,11 @@ import ru.yandex.practicum.filmorate.exceptions.UserRelationshipsException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validators.UserValidator;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -42,7 +38,7 @@ public class UserController {
 
     private final UserValidator userValidator;
     private final UserService userService;
-    private final InMemoryUserStorage userStorage;
+    //  private final InMemoryUserStorage userStorage;
 
     @PostMapping
     public User createUser(@Valid @RequestBody User newUser) {
@@ -53,7 +49,10 @@ public class UserController {
 
         newUser.setId(User.getNextId());
 
-        userStorage.getUsersById().put(newUser.getId(), newUser);
+        // userStorage.getUsersById().put(newUser.getId(), newUser);
+
+        userService.addNewUserToStorage(newUser.getId(), newUser);
+
         return newUser;
     }
 
@@ -67,12 +66,17 @@ public class UserController {
             throw new ValidationException("id должен быть указан");
         }
 
-        User oldUser = userStorage.getUsersById().get(userForUpdate.getId());
-        if (oldUser == null) {
-            throw new NotFoundException("Пользователь с id=" + userForUpdate.getId() + " не найден");
-        }
+        // User oldUser = userStorage.getUsersById().get(userForUpdate.getId());
 
-        userStorage.getUsersById().put(userForUpdate.getId(), userForUpdate);
+        User oldUser = userService.getUserFromStorage(userForUpdate.getId());
+
+//        if (oldUser == null) {
+//            throw new NotFoundException("Пользователь с id=" + userForUpdate.getId() + " не найден");
+//        }
+
+        //  userStorage.getUsersById().put(userForUpdate.getId(), userForUpdate);
+
+        userService.addNewUserToStorage(userForUpdate.getId(), userForUpdate);
 
         return userForUpdate;
     }
@@ -80,32 +84,40 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public User addNewUserFriend(@PathVariable Long id, @PathVariable Long friendId) {
 
-        if (id == null) {
-            throw new NotFoundException("Не указан id пользователя.");
-        }
+        log.info("Получен HTTP-запрос на обновление друзей пользователя: #{}, id друга для добавления: #{}", id, friendId);
 
-        if (id <= 0) {
-            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
-        }
+//        if (id == null) {
+//            throw new NotFoundException("Не указан id пользователя.");
+//        }
+//
+//        if (id <= 0) {
+//            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
+//        }
+//
+//        if (friendId == null) {
+//            throw new NotFoundException("Для добавления нового друга должно быть указано его id.");
+//        }
+//
+//        if (friendId <= 0) {
+//            throw new IncorrectCountException("id друга должен начинаться от 1 и выше.");
+//        }
 
-        if (friendId == null) {
-            throw new NotFoundException("Для добавления нового друга должно быть указано его id.");
-        }
+        userService.validateUserByID(id);
+        userService.validateUserByID(friendId);
 
-        if (friendId <= 0) {
-            throw new IncorrectCountException("id друга должен начинаться от 1 и выше.");
-        }
+        //   User user = userStorage.getUsersById().get(id);
+        //   User friendUser = userStorage.getUsersById().get(friendId);
 
-        User user = userStorage.getUsersById().get(id);
-        User friendUser = userStorage.getUsersById().get(friendId);
+        User user = userService.getUserFromStorage(id);
+        User friendUser = userService.getUserFromStorage(friendId);
 
-        if (user == null) {
-            throw new NotFoundException("Попытка добавить друга несуществующему пользователю, id = " + id);
-        }
-
-        if (friendUser == null) {
-            throw new NotFoundException("Друг с указанным friendId " + friendId + " не найден.");
-        }
+//        if (user == null) {
+//            throw new NotFoundException("Попытка добавить друга несуществующему пользователю, id = " + id);
+//        }
+//
+//        if (friendUser == null) {
+//            throw new NotFoundException("Друг с указанным friendId " + friendId + " не найден.");
+//        }
 
         user.getFriends().add(friendUser.getId());
         friendUser.getFriends().add(user.getId());
@@ -116,13 +128,9 @@ public class UserController {
     @DeleteMapping("/{id}/friends/{friendId}")
     public User deleteUserFromFriends(@PathVariable Long id, @PathVariable Long friendId) {
 
-        if (id == null) {
-            throw new NotFoundException("Не указан id пользователя.");
-        }
+        log.info("Получен HTTP-запрос на удаление пользователя (#{}) из списка друзей (user #{})", friendId, id);
 
-        if (id <= 0) {
-            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
-        }
+        userService.validateUserByID(id);
 
         if (friendId == null) {
             throw new NotFoundException("Чтобы удалить друга должен быть указан его id.");
@@ -132,19 +140,22 @@ public class UserController {
             throw new IncorrectCountException("id друга для удаления должен начинаться от 1 и выше.");
         }
 
-        User user = userStorage.getUsersById().get(id);
-        User friendUser = userStorage.getUsersById().get(friendId);
+        //User user = userStorage.getUsersById().get(id);
+        //User friendUser = userStorage.getUsersById().get(friendId);
 
-        if (user == null) {
-            throw new NotFoundException("Попытка удалить друга у несуществующего пользователя, id = " + id);
-        }
+        User user = userService.getUserFromStorage(id);
+        User friendUser = userService.getUserFromStorage(friendId);
 
-        if (friendUser == null) {
-            throw new NotFoundException("Пользователь для удаления из друзей не найден: id = " + friendId);
-        }
+//        if (user == null) {
+//            throw new NotFoundException("Попытка удалить друга у несуществующего пользователя, id = " + id);
+//        }
+//
+//        if (friendUser == null) {
+//            throw new NotFoundException("Пользователь для удаления из друзей не найден: id = " + friendId);
+//        }
 
         if (!user.getFriends().contains(friendUser.getId())) {
-            throw new UserRelationshipsException("Ошибка исполнения: пользователи не являются друзьями! (удаление не требуется)");
+            throw new UserRelationshipsException("Ошибка исполнения: пользователи не являются друзьями!");
         }
 
         user.getFriends().remove(friendUser.getId());
@@ -155,19 +166,18 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public Collection<User> getAllFriendsForUser(@PathVariable Long id) {
-        if (id == null) {
-            throw new NotFoundException("Не указан id пользователя.");
-        }
 
-        if (id <= 0) {
-            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
-        }
+        log.info("Получен HTTP-запрос на получение списка всех друзей пользователя: #{}", id);
 
-        User userForSearch = userStorage.getUsersById().get(id);
+        userService.validateUserByID(id);
 
-        if (userForSearch == null) {
-            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + id);
-        }
+        // User userForSearch = userStorage.getUsersById().get(id);
+
+        User userForSearch = userService.getUserById(id);
+
+//        if (userForSearch == null) {
+//            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + id);
+//        }
 
         List<User> friendsList = userForSearch.getFriends().stream()
                 .map(userService::getUserById)
@@ -185,29 +195,36 @@ public class UserController {
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<User> getAllCommonFriendsWithUser(@PathVariable Long id, @PathVariable Long otherId) {
 
-        if (id == null) {
-            throw new NotFoundException("Не указан id 1-го пользователя.");
-        }
+        log.info("Получен HTTP-запрос на получение общих друзей с пользователем: #{}, от (user #{})", otherId, id);
 
-        if (otherId == null) {
-            throw new NotFoundException("Не указан id 2-го пользователя.");
-        }
+//        if (id == null) {
+//            throw new NotFoundException("Не указан id 1-го пользователя.");
+//        }
+//
+//        if (otherId == null) {
+//            throw new NotFoundException("Не указан id 2-го пользователя.");
+//        }
+//
+//        if (id <= 0 || otherId <= 0) {
+//            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
+//        }
 
-        if (id <= 0 || otherId <= 0) {
-            throw new IncorrectCountException("id должен начинаться от 1 и выше.");
-        }
+        userService.validateUserByID(id);
+        userService.validateUserByID(otherId);
 
-        User firstUser = userStorage.getUsersById().get(id);
+        User firstUser = userService.getUserFromStorage(id);
 
-        if (firstUser == null) {
-            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + id);
-        }
+//        if (firstUser == null) {
+//            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + id);
+//        }
 
-        User secondUser = userStorage.getUsersById().get(otherId);
+        // User secondUser = userStorage.getUsersById().get(otherId);
 
-        if (secondUser == null) {
-            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + otherId);
-        }
+        User secondUser = userService.getUserFromStorage(otherId);
+
+//        if (secondUser == null) {
+//            throw new NotFoundException("Попытка обращения к несуществующему пользователю, id = " + otherId);
+//        }
 
         List<Long> commonFriendIds = firstUser.getFriends().stream()
                 .filter(friendId -> secondUser.getFriends().contains(friendId))
@@ -223,13 +240,21 @@ public class UserController {
 
     @GetMapping
     public Collection<User> getAllUsers() {
-        return userStorage.getUsersById().values().stream()
+
+        log.info("Получен HTTP-запрос на получение списка всех пользователей");
+
+//        return userStorage.getUsersById().values().stream()
+//                .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
+//                .toList();
+
+        return userService.getAllUsersFromStorage().stream()
                 .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
                 .toList();
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable long id) {
+        log.info("Получен HTTP-запрос на получение пользователя по его номеру: #{}", id);
         return userService.getUserById(id);
     }
 

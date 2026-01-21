@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.yandex.practicum.filmorate.exceptions.EntityStorageException;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserRelationshipsException;
@@ -41,6 +42,13 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleUserRelationship(UserRelationshipsException e) {
         log.warn("Недопустимая операция: {}", e.getMessage());
+        return Map.of("error", e.getMessage());
+    }
+
+    @ExceptionHandler(EntityStorageException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleStorageException(EntityStorageException e) {
+        log.error("Ошибка доступа к хранилищу: {}", e.getMessage());
         return Map.of("error", e.getMessage());
     }
 
