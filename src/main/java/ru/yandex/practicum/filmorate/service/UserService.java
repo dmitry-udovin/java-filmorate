@@ -54,7 +54,7 @@ public class UserService {
         }
     }
 
-    public void updateFilmInStorage(User user) {
+    public void updateUserInStorage(User user) {
         if (userStorage.getUsersById().containsKey(user.getId())) {
             userStorage.getUsersById().put(user.getId(), user); // перезаписываем
         } else {
@@ -63,11 +63,12 @@ public class UserService {
     }
 
     public List<User> getAllUsersFromStorage() {
-        if (!userStorage.getUsersById().isEmpty()) {
-            return userStorage.getUsersById().values().stream().toList();
-        } else {
-            throw new EntityStorageException("Хранилище пустое, невозможно получить из него пользователей.");
-        }
+//        if (!userStorage.getUsersById().isEmpty()) {
+//            return userStorage.getUsersById().values().stream().toList();
+//        } else {
+//            throw new EntityStorageException("Хранилище пустое, невозможно получить из него пользователей.");
+//        }
+        return userStorage.getUsersById().values().stream().toList();
     }
 
 }

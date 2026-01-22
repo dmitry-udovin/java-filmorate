@@ -12,13 +12,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
-import ru.yandex.practicum.filmorate.exceptions.UserRelationshipsException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validators.UserValidator;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 
 import java.util.Collection;
 import java.util.List;
@@ -59,8 +56,10 @@ public class UserController {
             throw new ValidationException("id должен быть указан");
         }
 
-        userService.addNewUserToStorage(userForUpdate.getId(), userForUpdate);
+        // userService.addNewUserToStorage(userForUpdate.getId(), userForUpdate);
+        userService.getUserById(userForUpdate.getId());
 
+        userService.updateUserInStorage(userForUpdate);
         return userForUpdate;
     }
 
@@ -87,21 +86,14 @@ public class UserController {
         log.info("Получен HTTP-запрос на удаление пользователя (#{}) из списка друзей (user #{})", friendId, id);
 
         userService.validateUserByID(id);
-
-        if (friendId == null) {
-            throw new NotFoundException("Чтобы удалить друга должен быть указан его id.");
-        }
-
-        if (friendId <= 0) {
-            throw new IncorrectCountException("id друга для удаления должен начинаться от 1 и выше.");
-        }
+        userService.validateUserByID(friendId);
 
         User user = userService.getUserFromStorage(id);
         User friendUser = userService.getUserFromStorage(friendId);
 
-        if (!user.getFriends().contains(friendUser.getId())) {
-            throw new UserRelationshipsException("Ошибка исполнения: пользователи не являются друзьями!");
-        }
+//        if (!user.getFriends().contains(friendUser.getId())) {
+//            throw new UserRelationshipsException("Ошибка исполнения: пользователи не являются друзьями!");
+//        }
 
         user.getFriends().remove(friendUser.getId());
         friendUser.getFriends().remove(user.getId());
@@ -118,16 +110,21 @@ public class UserController {
 
         User userForSearch = userService.getUserById(id);
 
-        List<User> friendsList = userForSearch.getFriends().stream()
+//        List<User> friendsList = userForSearch.getFriends().stream()
+//                .map(userService::getUserById)
+//                .filter(Objects::nonNull)
+//                .toList();
+
+//        if (friendsList.isEmpty()) {
+//            throw new NotFoundException("Пользователь с id #" + id + " не имеет друзей.");
+//        }
+//
+//        return friendsList;
+
+        return userForSearch.getFriends().stream()
                 .map(userService::getUserById)
                 .filter(Objects::nonNull)
                 .toList();
-
-        if (friendsList.isEmpty()) {
-            throw new NotFoundException("Пользователь с id #" + id + " не имеет друзей.");
-        }
-
-        return friendsList;
 
     }
 

@@ -20,7 +20,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validators.FilmValidator;
-
 import java.util.Collection;
 
 @Slf4j
@@ -64,7 +63,10 @@ public class FilmController {
             throw new NotFoundException("Фильм с id=" + filmForUpdate.getId() + " не найден");
         }
 
-        filmService.addNewFilmToStorage(filmForUpdate.getId(), filmForUpdate);
+        // filmService.addNewFilmToStorage(filmForUpdate.getId(), filmForUpdate);
+        filmService.getFilmFromStorage(filmForUpdate.getId());
+
+        filmService.updateFilmInStorage(filmForUpdate);
 
         return filmForUpdate;
     }
@@ -79,11 +81,13 @@ public class FilmController {
 
         Film filmForLike = filmService.getFilmFromStorage(filmId);
 
-        if (!filmForLike.getUsersWhoLiked().contains(userId)) {
-            filmForLike.getUsersWhoLiked().add(userId);
-        } else {
-            throw new IncorrectCountException("Пользователь с номером " + userId + " уже поставил лайк указанному фильму.");
-        }
+//        if (!filmForLike.getUsersWhoLiked().contains(userId)) {
+//            filmForLike.getUsersWhoLiked().add(userId);
+//        } else {
+//            throw new IncorrectCountException("Пользователь с номером " + userId + " уже поставил лайк указанному фильму.");
+//        }
+
+        filmForLike.getUsersWhoLiked().add(userId);
 
         return filmForLike;
     }

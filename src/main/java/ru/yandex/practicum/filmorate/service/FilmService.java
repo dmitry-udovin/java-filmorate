@@ -55,11 +55,12 @@ public class FilmService {
     }
 
     public List<Film> getAllFilmsFromStorage() {
-        if (!filmStorage.getFilmsById().isEmpty()) {
-            return filmStorage.getFilmsById().values().stream().toList();
-        } else {
-            throw new EntityStorageException("Хранилище пустое, невозможно получить из него фильмы.");
-        }
+//        if (!filmStorage.getFilmsById().isEmpty()) {
+//            return filmStorage.getFilmsById().values().stream().toList();
+//        } else {
+//            throw new EntityStorageException("Хранилище пустое, невозможно получить из него фильмы.");
+//        }
+        return filmStorage.getFilmsById().values().stream().toList();
     }
 
     public List<Film> getMorePopularFilmsByLikes(int count) {
