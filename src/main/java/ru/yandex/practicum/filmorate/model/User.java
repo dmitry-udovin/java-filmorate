@@ -14,7 +14,6 @@ import java.util.Set;
 @Data
 public class User {
 
-    private static int counter = 1;
     private Set<Long> friends = new HashSet<>();
 
     private long id;
@@ -33,7 +32,4 @@ public class User {
         return birthday != null && !birthday.isAfter(LocalDate.now());
     }
 
-    public static long getNextId() {
-        return counter++;
-    }
 }

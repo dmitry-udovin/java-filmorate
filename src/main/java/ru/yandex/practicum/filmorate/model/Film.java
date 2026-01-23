@@ -16,8 +16,7 @@ public class Film {
     private static final LocalDate CINEMA_BIRTHDAY =
             LocalDate.of(1895, 12, 28);
 
-    private static int counter = 1;
-   // @JsonIgnore
+    // @JsonIgnore
     private Set<Long> usersWhoLiked = new HashSet<>(); // id
 
     private int id;
@@ -34,7 +33,4 @@ public class Film {
         return releaseDate != null && !releaseDate.isBefore(CINEMA_BIRTHDAY);
     }
 
-    public static int getNextId() {
-        return counter++;
-    }
 }

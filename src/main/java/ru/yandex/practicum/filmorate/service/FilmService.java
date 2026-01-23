@@ -3,10 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.EntityStorageException;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.util.List;
 
@@ -14,53 +12,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FilmService {
 
-    private final FilmStorage filmStorage;
+    private final InMemoryFilmStorage filmStorage;
 
     public void validateFilmByID(Integer filmId) {
-        if (filmId == null) {
-            throw new NotFoundException("Не указан номер фильма.");
-        }
-
-        if (filmId <= 0) {
-            throw new IncorrectCountException("Номер фильма не может быть отрицательным.");
-        }
-
-        if (!filmStorage.getFilmsById().containsKey(filmId)) {
-            throw new NotFoundException("Фильм с указанным номером (#" + filmId + ") отсутствует в списке.");
-        }
+        filmStorage.validateFilmById(filmId);
     }
 
-    public void addNewFilmToStorage(Integer filmId, Film film) {
-        if (!filmStorage.getFilmsById().containsKey(filmId)) {
-            filmStorage.getFilmsById().put(filmId, film);
-        } else {
-            throw new EntityStorageException("Фильм с указанным номером (#" + filmId + ") уже содержится в хранилище.");
-        }
+    public void addNewFilmToStorage(Film film) {
+        filmStorage.addFilmInStorage(film);
     }
 
     public Film getFilmFromStorage(Integer filmId) {
-        if (filmStorage.getFilmsById().containsKey(filmId)) {
-            return filmStorage.getFilmsById().get(filmId);
-        } else {
-            throw new NotFoundException("Фильм с указанным номером (#" + filmId + ") отсутствует в списке.");
-        }
+        return filmStorage.getFilmFromStorage(filmId);
     }
 
     public void updateFilmInStorage(Film film) {
-        if (filmStorage.getFilmsById().containsKey(film.getId())) {
-            filmStorage.getFilmsById().put(film.getId(), film); // перезаписываем
-        } else {
-            throw new NotFoundException("Не найден фильм по номеру #" + film.getId() + " для обновления.");
-        }
+        filmStorage.updateFilmInStorage(film);
     }
 
     public List<Film> getAllFilmsFromStorage() {
-//        if (!filmStorage.getFilmsById().isEmpty()) {
-//            return filmStorage.getFilmsById().values().stream().toList();
-//        } else {
-//            throw new EntityStorageException("Хранилище пустое, невозможно получить из него фильмы.");
-//        }
-        return filmStorage.getFilmsById().values().stream().toList();
+        return filmStorage.getAllFilmsFromStorage();
     }
 
     public List<Film> getMorePopularFilmsByLikes(int count) {

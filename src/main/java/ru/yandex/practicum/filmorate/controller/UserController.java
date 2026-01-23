@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validators.UserValidator;
@@ -38,10 +39,7 @@ public class UserController {
         log.info("Получен HTTP-запрос на создание пользователя: {}", newUser);
 
         userValidator.validate(newUser);
-
-        newUser.setId(User.getNextId());
-
-        userService.addNewUserToStorage(newUser.getId(), newUser);
+        userService.addNewUserToStorage(newUser);
 
         return newUser;
     }
@@ -51,12 +49,8 @@ public class UserController {
         log.info("Получен HTTP-запрос на обновление пользовательских данных: {}", userForUpdate);
 
         userValidator.validate(userForUpdate);
+        userValidator.checkCorrectIdOrDropException(userForUpdate.getId());
 
-        if (userForUpdate.getId() <= 0) {
-            throw new ValidationException("id должен быть указан");
-        }
-
-        // userService.addNewUserToStorage(userForUpdate.getId(), userForUpdate);
         userService.getUserById(userForUpdate.getId());
 
         userService.updateUserInStorage(userForUpdate);
@@ -68,8 +62,13 @@ public class UserController {
 
         log.info("Получен HTTP-запрос на обновление друзей пользователя: #{}, id друга для добавления: #{}", id, friendId);
 
-        userService.validateUserByID(id);
-        userService.validateUserByID(friendId);
+        if (id == null || friendId == null) {
+            throw new NotFoundException("Не указан id пользователя.");
+        }
+
+        if (id <= 0 || friendId <= 0) {
+            throw new IncorrectCountException("Номер пользователя должен начинаться от 1 и выше.");
+        }
 
         User user = userService.getUserFromStorage(id);
         User friendUser = userService.getUserFromStorage(friendId);
@@ -85,15 +84,18 @@ public class UserController {
 
         log.info("Получен HTTP-запрос на удаление пользователя (#{}) из списка друзей (user #{})", friendId, id);
 
-        userService.validateUserByID(id);
-        userService.validateUserByID(friendId);
+        if (id == null || friendId == null) {
+            throw new NotFoundException("Не указан id пользователя.");
+        }
+
+        if (id <= 0 || friendId <= 0) {
+            throw new IncorrectCountException("Номер пользователя должен начинаться от 1 и выше.");
+        }
+
 
         User user = userService.getUserFromStorage(id);
         User friendUser = userService.getUserFromStorage(friendId);
 
-//        if (!user.getFriends().contains(friendUser.getId())) {
-//            throw new UserRelationshipsException("Ошибка исполнения: пользователи не являются друзьями!");
-//        }
 
         user.getFriends().remove(friendUser.getId());
         friendUser.getFriends().remove(user.getId());
@@ -106,26 +108,20 @@ public class UserController {
 
         log.info("Получен HTTP-запрос на получение списка всех друзей пользователя: #{}", id);
 
-        userService.validateUserByID(id);
+        if (id == null) {
+            throw new NotFoundException("Не указан id пользователя.");
+        }
+
+        if (id <= 0) {
+            throw new IncorrectCountException("Номер пользователя должен начинаться от 1 и выше.");
+        }
 
         User userForSearch = userService.getUserById(id);
-
-//        List<User> friendsList = userForSearch.getFriends().stream()
-//                .map(userService::getUserById)
-//                .filter(Objects::nonNull)
-//                .toList();
-
-//        if (friendsList.isEmpty()) {
-//            throw new NotFoundException("Пользователь с id #" + id + " не имеет друзей.");
-//        }
-//
-//        return friendsList;
 
         return userForSearch.getFriends().stream()
                 .map(userService::getUserById)
                 .filter(Objects::nonNull)
                 .toList();
-
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
@@ -133,8 +129,13 @@ public class UserController {
 
         log.info("Получен HTTP-запрос на получение общих друзей с пользователем: #{}, от (user #{})", otherId, id);
 
-        userService.validateUserByID(id);
-        userService.validateUserByID(otherId);
+        if (id == null || otherId == null) {
+            throw new NotFoundException("Не указан id пользователя.");
+        }
+
+        if (id <= 0 || otherId <= 0) {
+            throw new IncorrectCountException("Номер пользователя должен начинаться от 1 и выше.");
+        }
 
         User firstUser = userService.getUserFromStorage(id);
 

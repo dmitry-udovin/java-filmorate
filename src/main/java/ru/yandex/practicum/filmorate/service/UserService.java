@@ -2,11 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.EntityStorageException;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.util.List;
 
@@ -14,61 +11,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final InMemoryUserStorage userStorage;
 
     public User getUserById(long id) {
-        User user = userStorage.getUsersById().get(id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id " + id + " не найден.");
-        }
-        return user;
-    }
-
-    public void validateUserByID(Long userId) {
-        if (userId == null) {
-            throw new NotFoundException("Не указан id пользователя.");
-        }
-
-        if (userId <= 0) {
-            throw new IncorrectCountException("Номер пользователя должен начинаться от 1 и выше.");
-        }
-
-        if (!userStorage.getUsersById().containsKey(userId)) {
-            throw new NotFoundException("Пользователь с указанным айди (#" + userId + ") отсутствует в списке.");
-        }
+        return userStorage.getUserFromStorage(id);
     }
 
     public User getUserFromStorage(Long userId) {
-        if (userStorage.getUsersById().containsKey(userId)) {
-            return userStorage.getUsersById().get(userId);
-        } else {
-            throw new NotFoundException("Пользователь с указанным айди (#" + userId + ") отсутствует в списке.");
-        }
+        return userStorage.getUserFromStorage(userId);
     }
 
-    public void addNewUserToStorage(Long userId, User user) {
-        if (!userStorage.getUsersById().containsKey(userId)) {
-            userStorage.getUsersById().put(userId, user);
-        } else {
-            throw new EntityStorageException("Пользователь с указанным id (#" + userId + ") уже содержится в хранилище.");
-        }
+    public void addNewUserToStorage(User user) {
+        userStorage.addUserInStorage(user);
     }
 
     public void updateUserInStorage(User user) {
-        if (userStorage.getUsersById().containsKey(user.getId())) {
-            userStorage.getUsersById().put(user.getId(), user); // перезаписываем
-        } else {
-            throw new NotFoundException("Не найден пользователь с id = " + user.getId() + " для обновления.");
-        }
+        userStorage.updateUserInStorage(user);
     }
 
     public List<User> getAllUsersFromStorage() {
-//        if (!userStorage.getUsersById().isEmpty()) {
-//            return userStorage.getUsersById().values().stream().toList();
-//        } else {
-//            throw new EntityStorageException("Хранилище пустое, невозможно получить из него пользователей.");
-//        }
-        return userStorage.getUsersById().values().stream().toList();
+        return userStorage.getAllUsersFromStorage();
+    }
+
+    public void checkUserExistsInStorage(Long userId) {
+        userStorage.getUserFromStorage(userId);
     }
 
 }

@@ -19,7 +19,7 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.validators.FilmValidator;
+
 import java.util.Collection;
 
 @Slf4j
@@ -29,7 +29,6 @@ import java.util.Collection;
 @RequestMapping("/films")
 public class FilmController {
 
-    private final FilmValidator filmValidator;
     private final FilmService filmService;
     private final UserService userService;
 
@@ -38,11 +37,12 @@ public class FilmController {
 
         log.info("Получен HTTP-запрос на создание фильма: {}", newFilm);
 
-        filmValidator.validate(newFilm);
+        if (newFilm == null) {
+            log.error("ошибка валидации: тело запроса пустое");
+            throw new ValidationException("тело запроса пустое");
+        }
 
-        newFilm.setId(Film.getNextId());
-
-        filmService.addNewFilmToStorage(newFilm.getId(), newFilm);
+        filmService.addNewFilmToStorage(newFilm);
 
         return newFilm;
     }
@@ -51,7 +51,10 @@ public class FilmController {
     public Film updateFilm(@Valid @RequestBody Film filmForUpdate) {
         log.info("Получен HTTP-запрос на обновление фильма: {}", filmForUpdate);
 
-        filmValidator.validate(filmForUpdate);
+        if (filmForUpdate == null) {
+            log.error("ошибка валидации: тело запроса пустое");
+            throw new ValidationException("тело запроса пустое");
+        }
 
         if (filmForUpdate.getId() <= 0) {
             throw new ValidationException("id должен быть указан");
@@ -63,7 +66,6 @@ public class FilmController {
             throw new NotFoundException("Фильм с id=" + filmForUpdate.getId() + " не найден");
         }
 
-        // filmService.addNewFilmToStorage(filmForUpdate.getId(), filmForUpdate);
         filmService.getFilmFromStorage(filmForUpdate.getId());
 
         filmService.updateFilmInStorage(filmForUpdate);
@@ -77,16 +79,9 @@ public class FilmController {
         log.info("Получен HTTP-запрос на обновление информации о лайках фильма: {}, от пользователя: {}", filmId, userId);
 
         filmService.validateFilmByID(filmId);
-        userService.validateUserByID(userId);
+        userService.checkUserExistsInStorage(userId);
 
         Film filmForLike = filmService.getFilmFromStorage(filmId);
-
-//        if (!filmForLike.getUsersWhoLiked().contains(userId)) {
-//            filmForLike.getUsersWhoLiked().add(userId);
-//        } else {
-//            throw new IncorrectCountException("Пользователь с номером " + userId + " уже поставил лайк указанному фильму.");
-//        }
-
         filmForLike.getUsersWhoLiked().add(userId);
 
         return filmForLike;
@@ -98,7 +93,7 @@ public class FilmController {
         log.info("Получен HTTP-запрос на удаление лайка, фильм #: {}, id пользователя: #{}", filmId, userId);
 
         filmService.validateFilmByID(filmId);
-        userService.validateUserByID(userId);
+        userService.checkUserExistsInStorage(userId);
 
         Film film = filmService.getFilmFromStorage(filmId);
 
