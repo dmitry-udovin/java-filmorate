@@ -7,6 +7,8 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -14,7 +16,8 @@ public class Film {
     private static final LocalDate CINEMA_BIRTHDAY =
             LocalDate.of(1895, 12, 28);
 
-    private static int counter = 1;
+    // @JsonIgnore
+    private Set<Long> usersWhoLiked = new HashSet<>(); // id
 
     private int id;
     @NotBlank
@@ -30,7 +33,4 @@ public class Film {
         return releaseDate != null && !releaseDate.isBefore(CINEMA_BIRTHDAY);
     }
 
-    public static int getNextId() {
-        return counter++;
-    }
 }
