@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -34,11 +35,10 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User newUser) {
+    public UserDto createUser(@Valid @RequestBody UserDto newUser) {
 
         log.info("Получен HTTP-запрос на создание пользователя: {}", newUser);
 
-        userValidator.validate(newUser);
         userService.addNewUserToStorage(newUser);
 
         return newUser;

@@ -1,17 +1,24 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.converter.UserConverter;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@Data
 public class UserService {
 
-    private final InMemoryUserStorage userStorage;
+    private final UserStorage userStorage;
+
+    public UserService(@Qualifier("dbUserStorage") final UserStorage userStorage) {
+        this.userStorage = userStorage;
+    }
 
     public User getUserById(long id) {
         return userStorage.getUserFromStorage(id);
@@ -21,8 +28,15 @@ public class UserService {
         return userStorage.getUserFromStorage(userId);
     }
 
-    public void addNewUserToStorage(User user) {
-        userStorage.addUserInStorage(user);
+    public UserDto addNewUserToStorage(UserDto userDto) {
+
+       User userModel = UserConverter.dtoToModel(userDto);
+
+       User createdUser = userStorage.addUserInStorage(userModel);
+
+       userDto = UserConverter.modelToDto(createdUser);
+
+       return userDto;
     }
 
     public void updateUserInStorage(User user) {

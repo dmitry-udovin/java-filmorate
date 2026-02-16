@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +13,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.converter.FilmConverter;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -33,78 +37,56 @@ public class FilmController {
     private final UserService userService;
 
     @PostMapping
-    public Film createNewFilm(@Valid @RequestBody Film newFilm) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public FilmDto createNewFilm(@Valid @RequestBody FilmDto newFilm) {
 
         log.info("Получен HTTP-запрос на создание фильма: {}", newFilm);
 
-        if (newFilm == null) {
-            log.error("ошибка валидации: тело запроса пустое");
-            throw new ValidationException("тело запроса пустое");
-        }
+        FilmDto filmDto = filmService.addNewFilmToStorage(newFilm);
 
-        filmService.addNewFilmToStorage(newFilm);
-
-        return newFilm;
+        return filmDto;
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film filmForUpdate) {
         log.info("Получен HTTP-запрос на обновление фильма: {}", filmForUpdate);
 
-        if (filmForUpdate == null) {
-            log.error("ошибка валидации: тело запроса пустое");
-            throw new ValidationException("тело запроса пустое");
-        }
+        Film updatedFilm = filmService.updateFilmInStorage(filmForUpdate);
 
-        if (filmForUpdate.getId() <= 0) {
-            throw new ValidationException("id должен быть указан");
-        }
-
-        Film oldFilm = filmService.getFilmFromStorage(filmForUpdate.getId());
-
-        if (oldFilm == null) {
-            throw new NotFoundException("Фильм с id=" + filmForUpdate.getId() + " не найден");
-        }
-
-        filmService.getFilmFromStorage(filmForUpdate.getId());
-
-        filmService.updateFilmInStorage(filmForUpdate);
-
-        return filmForUpdate;
+        return updatedFilm;
     }
 
     @PutMapping("/{filmId}/like/{userId}")
-    public Film updateFilmLikesInformation(@PathVariable Integer filmId, @PathVariable Long userId) {
+    public void addLike(@PathVariable Long filmId, @PathVariable Long userId) {
 
-        log.info("Получен HTTP-запрос на обновление информации о лайках фильма: {}, от пользователя: {}", filmId, userId);
+        log.info("Получен HTTP-запрос на добавление лайка: фильм {}, от пользователя: {}", filmId, userId);
 
-        filmService.validateFilmByID(filmId);
-        userService.checkUserExistsInStorage(userId);
+//        Film filmForLike = filmService.getFilmFromStorage(filmId).get();
+//        filmForLike.getUsersWhoLiked().add(userId);
 
-        Film filmForLike = filmService.getFilmFromStorage(filmId);
-        filmForLike.getUsersWhoLiked().add(userId);
+        filmService.addLike(filmId, userId);
 
-        return filmForLike;
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")
-    public Film deleteLikeFromFilmByUser(@PathVariable Integer filmId, @PathVariable Long userId) {
+    public Film deleteLikeFromFilmByUser(@PathVariable Long filmId, @PathVariable Long userId) {
 
         log.info("Получен HTTP-запрос на удаление лайка, фильм #: {}, id пользователя: #{}", filmId, userId);
 
         filmService.validateFilmByID(filmId);
         userService.checkUserExistsInStorage(userId);
 
-        Film film = filmService.getFilmFromStorage(filmId);
+        Film filmForDeleteLike = filmService.getFilmFromStorage(filmId).get();
 
-        if (film.getUsersWhoLiked().contains(userId)) {
-            film.getUsersWhoLiked().remove(userId);
+        if (filmForDeleteLike.getUsersWhoLiked().contains(userId)) {
+            filmForDeleteLike.getUsersWhoLiked().remove(userId);
         } else {
             throw new NotFoundException("Пользователь с номером " + userId + " не отмечал фильм как понравившийся.");
         }
 
-        return film;
+        filmService.updateFilmInStorage(filmForDeleteLike);
 
+        return filmForDeleteLike;
     }
 
     @GetMapping("/popular")
@@ -120,21 +102,25 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> getFilms() {
+    public Collection<FilmDto> getFilms() {
 
         log.info("Получен HTTP-запрос на получение всех фильмов");
 
         return filmService.getAllFilmsFromStorage().stream()
-                .sorted((a, b) -> Integer.compare(a.getId(), b.getId()))
+                .map(FilmConverter::modelToDto)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable int id) {
+    public Film getFilmById(@PathVariable long id) {
 
         log.info("Получен HTTP-запрос на получение фильма по его номеру: #{}", id);
 
-        return filmService.getFilmFromStorage(id);
+        filmService.validateFilmByID(id);
+
+        Film filmFromStorage = filmService.getFilmFromStorage(id).get();
+
+        return filmFromStorage;
     }
 
 }
