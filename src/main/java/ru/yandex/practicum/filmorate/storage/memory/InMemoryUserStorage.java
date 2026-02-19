@@ -14,9 +14,8 @@ public class InMemoryUserStorage implements UserStorage {
     private long counter = 1;
 
     @Override
-    public User getUserFromStorage(long userId) {
-        return Optional.ofNullable(usersById.get(userId))
-                .orElseThrow(() -> new NotFoundException("Пользователь с id #" + userId + " не найден."));
+    public Optional<User> getUserFromStorage(long userId) {
+        return Optional.ofNullable(usersById.get(userId));
     }
 
     public void validateUserByID(Long userId) {
@@ -36,6 +35,40 @@ public class InMemoryUserStorage implements UserStorage {
     public void deleteUserFromStorage(Long userId) {
         validateUserByID(userId);
         usersById.remove(userId);
+    }
+
+    @Override
+    public void addFriend(long userId, long friendId) {
+        User user = usersById.get(userId);
+        User friend = usersById.get(friendId);
+
+        if (user != null && friend != null) {
+            user.getFriends().add(friendId);
+            friend.getFriends().add(userId);
+        } else {
+            throw new NotFoundException("Один из пользователей не найден");
+        }
+    }
+
+    @Override
+    public void deleteFriend(long userId, long friendId) {
+        User user = usersById.get(userId);
+        User friend = usersById.get(friendId);
+
+        if (user != null && friend != null) {
+            user.getFriends().remove(friendId);
+            friend.getFriends().remove(userId);
+        }
+    }
+
+    @Override
+    public List<User> getFriends(long userId) {
+        return List.of();
+    }
+
+    @Override
+    public List<User> getCommonFriends(long userId, long otherId) {
+        return List.of();
     }
 
     @Override

@@ -1,10 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -70,7 +65,7 @@ public class User {
                 LocalDateTime.now(),
                 null
         );
-        outgoingRequests.put(friendId,relation);
+        outgoingRequests.put(friendId, relation);
     }
 
     // принять заявку от другого пользователя
@@ -87,7 +82,7 @@ public class User {
                     incomingRelation.getCreatedAt(),
                     LocalDateTime.now()
             );
-            outgoingRequests.put(requesterId,outgoingRelation);
+            outgoingRequests.put(requesterId, outgoingRelation);
         } else {
             throw new IllegalStateException("Нет входящей заявки от пользователя " + requesterId);
         }
@@ -98,7 +93,6 @@ public class User {
         FriendRelation relation = incomingRequests.get(requesterId);
         if (relation != null && relation.getStatus() == FriendStatus.UNCONFIRMED) {
             incomingRequests.remove(requesterId);
-            // В БД удаляем запись
         }
     }
 
@@ -106,7 +100,6 @@ public class User {
     public void removeFriend(Long friendId) {
         outgoingRequests.remove(friendId);
         incomingRequests.remove(friendId);
-        // В БД удаляем обе записи (если есть)
     }
 
     // Проверить, является ли пользователь другом (подтвержденным)

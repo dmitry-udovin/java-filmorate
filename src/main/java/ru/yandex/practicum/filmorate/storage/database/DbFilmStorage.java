@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.storage.database;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.EntityStorageException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -33,7 +33,7 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
             "FROM films AS f " +
             "LEFT JOIN ratings AS r ON f.rating_id = r.rating_id ";
     private static final String FIND_BY_ID =
-            "SELECT f*, r.name AS mpa_name " +
+            "SELECT f.*, r.name AS mpa_name " +
                     "FROM films AS f " +
                     "LEFT JOIN ratings AS r ON f.rating_id = r.rating_id " +
                     "WHERE f.film_id = ?";
@@ -57,14 +57,15 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
         final String deleteSql = "DELETE FROM film_genres WHERE film_id = ?";
         jdbc.update(deleteSql, film.getId());
 
-        if (film.getFilmGenres() == null || film.getFilmGenres().isEmpty()) {
+        if (film.getGenres() == null || film.getGenres().isEmpty()) {
             return;
         }
 
-        List<Genre> genres = new ArrayList<>(film.getFilmGenres());
+        List<Genre> genres = new ArrayList<>(film.getGenres());
         final String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
         for (Genre genre : genres) {
+            getGenreById(genre.getId());
             jdbc.update(insertSql, film.getId(), genre.getId());
         }
     }
@@ -95,7 +96,7 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
             Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("name"));
 
             if (filmMap.containsKey(filmId)) {
-                filmMap.get(filmId).getFilmGenres().add(genre);
+                filmMap.get(filmId).getGenres().add(genre);
             }
         }, ids);
     }
@@ -131,18 +132,21 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> getFilmFromStorage(Long filmId) {
+    public Film getFilmFromStorage(Long filmId) {
         return findOne(FIND_BY_ID, filmId)
                 .map(film -> {
-                    film.setFilmGenres(getGenresByFilmId(filmId));
+                    film.setGenres(getGenresByFilmId(filmId));
                     return film;
-                });
+                })
+                .orElseThrow(() -> new NotFoundException("Фильм id=" + filmId + " не найден"));
     }
 
     @Override
     public Film addFilmInStorage(Film film) {
 
         Integer ratingId = (film.getMpa() != null) ? film.getMpa().getId() : null;
+
+        getRatingById(ratingId);
 
         Long filmId = insert(INSERT_FILMS_QUERY,
                 film.getName(),
@@ -154,7 +158,7 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
 
         film.setId(filmId);
 
-        if (film.getFilmGenres() != null && !film.getFilmGenres().isEmpty()) {
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             saveGenres(film);
         }
 
@@ -169,7 +173,7 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
                 filmForUpdate.getDescription(),
                 filmForUpdate.getReleaseDate(),
                 filmForUpdate.getDuration(),
-                filmForUpdate.getMpa(),
+                filmForUpdate.getMpa() != null ? filmForUpdate.getMpa().getId() : null,
                 filmForUpdate.getId()
         );
 
@@ -177,10 +181,10 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
             throw new NotFoundException("Фильм с id=" + filmForUpdate.getId() + " не найден");
         }
 
-        Optional<Film> filmInStorage = getFilmFromStorage(filmForUpdate.getId());
+        Film filmInStorage = getFilmFromStorage(filmForUpdate.getId());
 
-        if (filmInStorage.isPresent()) {
-            return filmInStorage.get();
+        if (filmInStorage != null) {
+            return filmInStorage;
         } else {
             throw new NotFoundException("Ошибка при получении обновлённого фильма");
         }
@@ -206,6 +210,63 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
     }
 
     @Override
+    public List<Genre> getAllGenresFromStorage() {
+        String sql = "SELECT * FROM genres";
+
+        return jdbc.query(sql, genreRowMapper);
+    }
+
+    RowMapper<Genre> genreRowMapper = new RowMapper<Genre>() {
+        @Override
+        public Genre mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Genre genre = new Genre();
+            genre.setId(rs.getInt("genre_id"));
+            genre.setName(rs.getString("name"));
+            return genre;
+        }
+    };
+
+    RowMapper<Rating> ratingRowMapper = new RowMapper<Rating>() {
+        @Override
+        public Rating mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Rating rating = new Rating();
+            rating.setId(rs.getInt("rating_id"));
+            rating.setName(rs.getString("name"));
+            return rating;
+        }
+    };
+
+    @Override
+    public Genre getGenreById(Integer genreId) {
+        String sql = "SELECT * FROM genres " +
+                "WHERE genre_id = ?";
+        try {
+            return jdbc.queryForObject(sql, genreRowMapper, genreId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Жанр с id " + genreId + " не найден");
+        }
+    }
+
+    @Override
+    public List<Rating> getAllRatingsFromStorage() {
+        String sql = "SELECT * FROM ratings";
+
+        return jdbc.query(sql, ratingRowMapper);
+    }
+
+    @Override
+    public Rating getRatingById(Integer ratingId) {
+        String sql = "SELECT * FROM ratings " +
+                "WHERE rating_id = ?";
+
+        try {
+            return jdbc.queryForObject(sql, ratingRowMapper, ratingId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Рейтинг с id " + ratingId + " не найден");
+        }
+    }
+
+    @Override
     public void validateFilmById(Long filmId) {
         if (filmId <= 0) {
             throw new ValidationException("id должен быть указан");
@@ -213,7 +274,7 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
 
         Optional<Film> filmWithOptional = findOne(FIND_BY_ID, filmId);
         if (!filmWithOptional.isPresent()) {
-            throw new EntityStorageException("Фильм с указанным номером (#" + filmId + ") отсутствует в хранилище");
+            throw new NotFoundException("Фильм с указанным номером (#" + filmId + ") отсутствует в хранилище");
         }
     }
 

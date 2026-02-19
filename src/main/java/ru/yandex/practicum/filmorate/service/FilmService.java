@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.converter.FilmConverter;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.exceptions.EntityStorageException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.Genre;
+import ru.yandex.practicum.filmorate.storage.Rating;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -50,7 +50,7 @@ public class FilmService {
         return filmDto;
     }
 
-    public Optional<Film> getFilmFromStorage(Long filmId) {
+    public Film getFilmFromStorage(Long filmId) {
         return filmStorage.getFilmFromStorage(filmId);
     }
 
@@ -63,15 +63,32 @@ public class FilmService {
         return filmStorage.getAllFilmsFromStorage();
     }
 
+    public List<Genre> getGenres() {
+        return filmStorage.getAllGenresFromStorage();
+    }
+
+    public Genre getGenreById(Integer genreId) {
+        return filmStorage.getGenreById(genreId);
+    }
+
+    public List<Rating> getRatings() {
+        return filmStorage.getAllRatingsFromStorage();
+    }
+
+    public Rating getRatingById(Integer ratingId) {
+        return filmStorage.getRatingById(ratingId);
+    }
+
     public List<Film> getMorePopularFilmsByLikes(int count) {
 
         List<Film> popularFilmsList = filmStorage.getPopular(count);
 
-        if (popularFilmsList.isEmpty()) {
-            throw new EntityStorageException("Хранилище пустое, невозможно получить из него фильмы.");
-        }
-
         return popularFilmsList;
     }
+
+    public void deleteLike(Long filmId, Long userId) {
+        filmStorage.deleteLike(filmId, userId);
+    }
+
 
 }

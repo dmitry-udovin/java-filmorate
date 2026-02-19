@@ -1,14 +1,12 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface FilmStorage {
 
-    Optional<Film> getFilmFromStorage(Long filmId);
+    Film getFilmFromStorage(Long filmId);
 
     Film addFilmInStorage(Film film);
 
@@ -19,6 +17,14 @@ public interface FilmStorage {
     List<Film> getPopular(int count);
 
     List<Film> getAllFilmsFromStorage();
+
+    List<Genre> getAllGenresFromStorage();
+
+    Genre getGenreById(Integer genreId);
+
+    List<Rating> getAllRatingsFromStorage();
+
+    Rating getRatingById(Integer ratingId);
 
     void validateFilmById(Long filmId);
 

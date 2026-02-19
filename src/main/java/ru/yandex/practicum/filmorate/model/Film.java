@@ -1,22 +1,12 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NonNull;
-import org.hibernate.validator.constraints.Length;
-import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.storage.Genre;
 import ru.yandex.practicum.filmorate.storage.Rating;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -29,12 +19,12 @@ public class Film {
     private int duration;
 
     private Rating mpa;
-    private Set<Genre> filmGenres = new LinkedHashSet<>();
+    private Set<Genre> genres = new LinkedHashSet<>();
 
     // @JsonIgnore
     private Set<Long> usersWhoLiked = new HashSet<>(); // id
 
-    public Film () {
+    public Film() {
 
     }
 
@@ -47,6 +37,5 @@ public class Film {
         this.duration = duration;
         this.mpa = mpa;
     }
-
 
 }

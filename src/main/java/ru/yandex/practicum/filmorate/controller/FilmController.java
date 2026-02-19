@@ -18,13 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.converter.FilmConverter;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectCountException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
+
 
 @Slf4j
 @RestController
@@ -58,35 +57,20 @@ public class FilmController {
 
     @PutMapping("/{filmId}/like/{userId}")
     public void addLike(@PathVariable Long filmId, @PathVariable Long userId) {
-
         log.info("Получен HTTP-запрос на добавление лайка: фильм {}, от пользователя: {}", filmId, userId);
-
-//        Film filmForLike = filmService.getFilmFromStorage(filmId).get();
-//        filmForLike.getUsersWhoLiked().add(userId);
 
         filmService.addLike(filmId, userId);
 
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")
-    public Film deleteLikeFromFilmByUser(@PathVariable Long filmId, @PathVariable Long userId) {
-
+    public void deleteLikeFromFilmByUser(@PathVariable Long filmId, @PathVariable Long userId) {
         log.info("Получен HTTP-запрос на удаление лайка, фильм #: {}, id пользователя: #{}", filmId, userId);
 
         filmService.validateFilmByID(filmId);
         userService.checkUserExistsInStorage(userId);
 
-        Film filmForDeleteLike = filmService.getFilmFromStorage(filmId).get();
-
-        if (filmForDeleteLike.getUsersWhoLiked().contains(userId)) {
-            filmForDeleteLike.getUsersWhoLiked().remove(userId);
-        } else {
-            throw new NotFoundException("Пользователь с номером " + userId + " не отмечал фильм как понравившийся.");
-        }
-
-        filmService.updateFilmInStorage(filmForDeleteLike);
-
-        return filmForDeleteLike;
+        filmService.deleteLike(filmId, userId);
     }
 
     @GetMapping("/popular")
@@ -113,14 +97,9 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilmById(@PathVariable long id) {
-
         log.info("Получен HTTP-запрос на получение фильма по его номеру: #{}", id);
 
-        filmService.validateFilmByID(id);
-
-        Film filmFromStorage = filmService.getFilmFromStorage(id).get();
-
-        return filmFromStorage;
+        return filmService.getFilmFromStorage(id);
     }
 
 }
