@@ -28,6 +28,12 @@ class DbFilmStorageTests {
 
     @BeforeEach
     void setUp() {
+        try {
+            jdbcTemplate.execute("DROP TABLE films");
+        } catch (Exception ignored) {
+
+        }
+
         jdbcTemplate.execute("""
                 CREATE TABLE IF NOT EXISTS ratings (
                     rating_id INT PRIMARY KEY,
@@ -67,27 +73,24 @@ class DbFilmStorageTests {
                 )
                 """);
 
-        // очистка
         jdbcTemplate.update("DELETE FROM film_likes");
         jdbcTemplate.update("DELETE FROM film_genres");
         jdbcTemplate.update("DELETE FROM films");
         jdbcTemplate.update("DELETE FROM ratings");
         jdbcTemplate.update("DELETE FROM genres");
 
-        // сброс автоинкремента
         jdbcTemplate.execute("ALTER TABLE films ALTER COLUMN film_id RESTART WITH 1");
 
-        // данные рейтингов
         jdbcTemplate.update("INSERT INTO ratings (rating_id, name) VALUES (1, 'G')");
         jdbcTemplate.update("INSERT INTO ratings (rating_id, name) VALUES (2, 'PG')");
         jdbcTemplate.update("INSERT INTO ratings (rating_id, name) VALUES (3, 'PG-13')");
         jdbcTemplate.update("INSERT INTO ratings (rating_id, name) VALUES (4, 'R')");
         jdbcTemplate.update("INSERT INTO ratings (rating_id, name) VALUES (5, 'NC-17')");
 
-        // жанры
         jdbcTemplate.update("INSERT INTO genres (genre_id, name) VALUES (1, 'Комедия')");
         jdbcTemplate.update("INSERT INTO genres (genre_id, name) VALUES (2, 'Драма')");
     }
+
 
     @Test
     void testCreateAndGetFilm() {
