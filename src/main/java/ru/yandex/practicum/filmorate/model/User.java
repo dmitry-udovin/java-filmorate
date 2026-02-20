@@ -30,8 +30,8 @@ public class User {
 
     }
 
-    public User(final long id, final String email, final String name) {
-        this.id = id;
+    public User(final String email, final String name) {
+        //this.id = id;
         this.email = email;
         this.name = name;
     }
