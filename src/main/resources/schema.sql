@@ -1,9 +1,3 @@
-DELETE FROM film_likes;
-DELETE FROM film_genres;
-DELETE FROM films;
-
-ALTER TABLE films ALTER COLUMN film_id RESTART WITH 1;
-
 -- =========================
 -- Справочные таблицы
 -- =========================
