@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.Rating;
 import ru.yandex.practicum.filmorate.storage.database.DbFilmStorage;
@@ -16,6 +17,9 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
+@TestPropertySource(properties = {
+        "spring.sql.init.mode=never"
+})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class DbFilmStorageTests {
 
