@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.storage.Rating;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -67,11 +66,21 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
             return;
         }
 
-        List<Genre> genres = new ArrayList<>(film.getGenres());
+        List<Genre> genres = film.getGenres().stream()
+                .filter(g -> g != null && g.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                        Genre::getId,
+                        g -> g,
+                        (a, b) -> a // если дубль — оставляем первый
+                ))
+                .values().stream()
+                .sorted(java.util.Comparator.comparingInt(Genre::getId))
+                .toList();
+
         final String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
         for (Genre genre : genres) {
-            getGenreById(genre.getId());
+            getGenreById(genre.getId()); // валидация существования жанра
             jdbc.update(insertSql, film.getId(), genre.getId());
         }
     }
@@ -80,7 +89,8 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
         String sql = "SELECT g.genre_id, g.name " +
                 "FROM genres AS g " +
                 "JOIN film_genres AS fg ON g.genre_id = fg.genre_id " +
-                "WHERE fg.film_id = ?";
+                "WHERE fg.film_id = ? " +
+                "ORDER BY g.genre_id";
 
         return new LinkedHashSet<>(jdbc.query(sql, (rs, rowNum) -> new Genre(rs.getInt("genre_id"), rs.getString("name")), filmId));
     }
@@ -93,7 +103,8 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
                 "FROM genres AS g " +
                 "JOIN film_genres AS fg ON g.genre_id = fg.genre_id " +
                 "WHERE fg.film_id IN (" +
-                String.join(",", Collections.nCopies(films.size(), "?")) + ")";
+                String.join(",", Collections.nCopies(films.size(), "?")) + ") " +
+                "ORDER BY fg.film_id, g.genre_id";
 
         Object[] ids = films.stream().map(Film::getId).toArray();
 
