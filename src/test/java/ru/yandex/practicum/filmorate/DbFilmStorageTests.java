@@ -17,9 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
-@TestPropertySource(properties = {
-        "spring.sql.init.mode=never"
-})
+@TestPropertySource(locations = "classpath:application-test.yaml")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class DbFilmStorageTests {
 

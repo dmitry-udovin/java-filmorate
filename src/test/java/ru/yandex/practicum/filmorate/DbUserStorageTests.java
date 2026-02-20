@@ -18,11 +18,9 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
-@TestPropertySource(properties = {
-        "spring.sql.init.mode=never"
-})
+@TestPropertySource(locations = "classpath:application-test.yaml")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class FilmorateApplicationTests {
+public class DbUserStorageTests {
 
     private final DbUserStorage userStorage;
     private final JdbcTemplate jdbcTemplate;
