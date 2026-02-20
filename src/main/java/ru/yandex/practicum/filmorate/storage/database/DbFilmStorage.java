@@ -25,13 +25,19 @@ import java.util.stream.Collectors;
 @Repository
 public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
 
-    private static final String INSERT_FILMS_QUERY = "INSERT INTO films (name, description, releaseDate, duration, rating_id) " +
-            "VALUES (?, ?, ?, ?, ?);";
-    private static final String UPDATE_FILMS_QUERY = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, rating_id = ? " +
-            "WHERE film_id = ?;";
-    private static final String FIND_ALL_QUERY = "SELECT f.*, r.name AS mpa_name " +
-            "FROM films AS f " +
-            "LEFT JOIN ratings AS r ON f.rating_id = r.rating_id ";
+    private static final String INSERT_FILMS_QUERY =
+            "INSERT INTO films (name, description, \"releaseDate\", duration, rating_id) " +
+                    "VALUES (?, ?, ?, ?, ?)";
+
+    private static final String UPDATE_FILMS_QUERY =
+            "UPDATE films SET name = ?, description = ?, \"releaseDate\" = ?, duration = ?, rating_id = ? " +
+                    "WHERE film_id = ?";
+
+    private static final String FIND_ALL_QUERY =
+            "SELECT f.*, r.name AS mpa_name " +
+                    "FROM films AS f " +
+                    "LEFT JOIN ratings AS r ON f.rating_id = r.rating_id";
+
     private static final String FIND_BY_ID =
             "SELECT f.*, r.name AS mpa_name " +
                     "FROM films AS f " +
