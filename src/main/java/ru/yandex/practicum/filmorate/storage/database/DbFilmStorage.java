@@ -79,13 +79,21 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
                 .sorted(java.util.Comparator.comparingInt(Genre::getId))
                 .toList();
 
+        if (genres.isEmpty()) {
+            return;
+        }
+
+        for (Genre g : genres) {
+            getGenreById(g.getId()); // проверка наличия (404 вместо 500)
+        }
+
         final String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
         jdbc.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setInt(1, genres.get(i).getId());
-                ps.setString(2, genres.get(i).getName());
+                ps.setLong(1, film.getId());
+                ps.setInt(2, genres.get(i).getId());
             }
 
             @Override
@@ -93,7 +101,6 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
                 return genres.size();
             }
         });
-
     }
 
     private Set<Genre> getGenresByFilmId(Long filmId) {
