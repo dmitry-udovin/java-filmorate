@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.database;
 
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -11,6 +12,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.Genre;
 import ru.yandex.practicum.filmorate.storage.Rating;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -79,10 +81,19 @@ public class DbFilmStorage extends BaseStorage<Film> implements FilmStorage {
 
         final String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
-        for (Genre genre : genres) {
-            getGenreById(genre.getId()); // валидация существования жанра
-            jdbc.update(insertSql, film.getId(), genre.getId());
-        }
+        jdbc.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setInt(1, genres.get(i).getId());
+                ps.setString(2, genres.get(i).getName());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return genres.size();
+            }
+        });
+
     }
 
     private Set<Genre> getGenresByFilmId(Long filmId) {

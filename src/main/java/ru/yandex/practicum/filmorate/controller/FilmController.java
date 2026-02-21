@@ -41,18 +41,17 @@ public class FilmController {
 
         log.info("Получен HTTP-запрос на создание фильма: {}", newFilm);
 
-        FilmDto filmDto = filmService.addNewFilmToStorage(newFilm);
-
-        return filmDto;
+        return filmService.addNewFilmToStorage(newFilm);
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film filmForUpdate) {
-        log.info("Получен HTTP-запрос на обновление фильма: {}", filmForUpdate);
+    public FilmDto updateFilm(@Valid @RequestBody FilmDto dtoForUpdate) {
+        log.info("Получен HTTP-запрос на обновление фильма: {}", dtoForUpdate);
 
-        Film updatedFilm = filmService.updateFilmInStorage(filmForUpdate);
+        Film fromDto = FilmConverter.dtoToModel(dtoForUpdate);
+        Film updatedFilm = filmService.updateFilmInStorage(fromDto);
 
-        return updatedFilm;
+        return FilmConverter.modelToDto(updatedFilm);
     }
 
     @PutMapping("/{filmId}/like/{userId}")
@@ -74,20 +73,20 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getMorePopularFilmsByLikes(@RequestParam(defaultValue = "10") int count) {
-
+    public Collection<FilmDto> getMorePopularFilmsByLikes(@RequestParam(defaultValue = "10") int count) {
         log.info("Получен HTTP-запрос на получение ТОП-{} понравившихся фильмов", count);
 
         if (count <= 0) {
             throw new IncorrectCountException("Параметр count должен начинаться от 1 и выше.");
         }
 
-        return filmService.getMorePopularFilmsByLikes(count);
+        return filmService.getMorePopularFilmsByLikes(count).stream()
+                .map(FilmConverter::modelToDto)
+                .toList();
     }
 
     @GetMapping
     public Collection<FilmDto> getFilms() {
-
         log.info("Получен HTTP-запрос на получение всех фильмов");
 
         return filmService.getAllFilmsFromStorage().stream()
@@ -96,10 +95,12 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable long id) {
+    public FilmDto getFilmById(@PathVariable long id) {
         log.info("Получен HTTP-запрос на получение фильма по его номеру: #{}", id);
 
-        return filmService.getFilmFromStorage(id);
+        Film filmModel = filmService.getFilmFromStorage(id);
+
+        return FilmConverter.modelToDto(filmModel);
     }
 
 }
