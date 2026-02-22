@@ -6,14 +6,30 @@ import java.util.List;
 
 public interface FilmStorage {
 
-    Film getFilmFromStorage(int filmId);
+    Film getFilmFromStorage(Long filmId);
 
-    void addFilmInStorage(Film film);
+    Film addFilmInStorage(Film film);
 
-    void updateFilmInStorage(Film filmForUpdate);
+    Film updateFilmInStorage(Film filmForUpdate);
 
-    void deleteFilmFromStorage(Integer filmId);
+    void deleteFilmFromStorage(Long filmId);
+
+    List<Film> getPopular(int count);
 
     List<Film> getAllFilmsFromStorage();
+
+    List<Genre> getAllGenresFromStorage();
+
+    Genre getGenreById(Integer genreId);
+
+    List<Rating> getAllRatingsFromStorage();
+
+    Rating getRatingById(Integer ratingId);
+
+    void validateFilmById(Long filmId);
+
+    void addLike(Long filmId, Long userId);
+
+    void deleteLike(Long filmId, Long userId);
 
 }

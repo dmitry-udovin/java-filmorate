@@ -1,36 +1,41 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
+import ru.yandex.practicum.filmorate.storage.Genre;
+import ru.yandex.practicum.filmorate.storage.Rating;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Data
 public class Film {
 
-    private static final LocalDate CINEMA_BIRTHDAY =
-            LocalDate.of(1895, 12, 28);
+    private long id;
+    private String name;
+    private String description;
+    private LocalDate releaseDate;
+    private int duration;
+
+    private Rating mpa;
+    private Set<Genre> genres = new LinkedHashSet<>();
 
     // @JsonIgnore
     private Set<Long> usersWhoLiked = new HashSet<>(); // id
 
-    private int id;
-    @NotBlank
-    private String name;
-    @Length(min = 5, max = 200)
-    private String description;
-    private LocalDate releaseDate;
-    @Positive
-    private int duration;
+    public Film() {
 
-    @AssertTrue(message = "дата релиза не может быть раньше 28 декабря 1895 года")
-    public boolean isReleaseDateValid() {
-        return releaseDate != null && !releaseDate.isBefore(CINEMA_BIRTHDAY);
+    }
+
+    public Film(long id, String name, String description, LocalDate releaseDate,
+                int duration, Rating mpa) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
     }
 
 }
