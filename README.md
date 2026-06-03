@@ -1,1 +1,1 @@
-# java-filmorate
+# java-filmorate (сервис для оценки фильмов)
